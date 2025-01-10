@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import './States.module.css';
+import "./States.module.css";
 
 function States() {
   const [selectcountry, setSelectedCountry] = useState("");
@@ -8,21 +8,28 @@ function States() {
   const [state, setState] = useState([]);
   const [selectCity, setSelectedCity] = useState("");
   const [city, setCity] = useState([]);
+  const [error, setError] = useState("");
 
   const countryApi = "https://crio-location-selector.onrender.com/countries";
-
-
   const stateApi = `https://crio-location-selector.onrender.com/country=${selectcountry}/states`;
   const cityApi = `https://crio-location-selector.onrender.com/country=${selectcountry}/state=${selectState}/cities`;
 
-
+  
   useEffect(() => {
     const fetchCountries = async () => {
-      const response = await fetch(countryApi);
-      const jsonData = await response.json();
-      setcountries(jsonData);
+      try {
+        setError("");
+        const response = await fetch(countryApi);
+        if (!response.ok) {
+          throw new Error("Failed to fetch countries.");
+        }
+        const jsonData = await response.json();
+        setcountries(jsonData);
+      } catch (err) {
+        setError(err.message);
+        setcountries([]);
+      }
     };
-
     fetchCountries();
   }, []);
 
@@ -30,25 +37,45 @@ function States() {
   useEffect(() => {
     if (selectcountry) {
       const fetchStates = async () => {
-        const response = await fetch(stateApi);
-        const jsonData = await response.json();
-        setState(jsonData);
+        try {
+          setError("");
+          const response = await fetch(stateApi);
+          if (!response.ok) {
+            throw new Error("Failed to fetch states.");
+          }
+          const jsonData = await response.json();
+          setState(jsonData);
+        } catch (err) {
+          setError(err.message);
+          setState([]);
+        }
       };
-
       fetchStates();
+    } else {
+      setState([]);
     }
   }, [selectcountry]);
 
-
+  
   useEffect(() => {
     if (selectState) {
       const fetchCities = async () => {
-        const response = await fetch(cityApi);
-        const jsonData = await response.json();
-        setCity(jsonData);
+        try {
+          setError("");
+          const response = await fetch(cityApi);
+          if (!response.ok) {
+            throw new Error("Failed to fetch cities.");
+          }
+          const jsonData = await response.json();
+          setCity(jsonData);
+        } catch (err) {
+          setError(err.message);
+          setCity([]);
+        }
       };
-
       fetchCities();
+    } else {
+      setCity([]);
     }
   }, [selectState]);
 
@@ -56,6 +83,9 @@ function States() {
     <div>
       <h1>Select Location</h1>
 
+      {error && <p className="error">{error}</p>}
+
+     
       <select
         className="selectBox"
         name="selectCountry"
@@ -72,6 +102,7 @@ function States() {
         ))}
       </select>
 
+      
       <select
         className="selectBox"
         name="selectState"
@@ -89,7 +120,7 @@ function States() {
         ))}
       </select>
 
-
+      
       <select
         className="selectBox"
         name="selectCity"
@@ -107,12 +138,9 @@ function States() {
         ))}
       </select>
 
- 
+      
       {selectCity && (
-        <h2>
-          {`You selected ${selectCity},${selectState}, ${selectcountry}`}
-        
-       </h2>
+        <h2>{`You selected ${selectCity}, ${selectState}, ${selectcountry}`}</h2>
       )}
     </div>
   );
